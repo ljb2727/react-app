@@ -2,12 +2,15 @@ import React, { Component } from "react";
 import "./App.css";
 import Subject from "./components/Subject";
 import TOC from "./components/TOC";
-import Content from "./components/Content";
+import ReadContent from "./components/ReadContent";
+import CreateContent from "./components/CreateContent";
 import Test from "./components/Test";
+import Control from "./components/control";
 
 class App extends Component {
     constructor(props) {
         super(props);
+        this.max_content_id = 3;
         this.state = {
             mode: "welcome",
             selected_content_id: 1,
@@ -22,26 +25,35 @@ class App extends Component {
     }
     render() {
         var _title,
-            _desc = null;
+            _desc,
+            _article = null;
         if (this.state.mode === "welcome") {
             _title = this.state.welcome.title;
             _desc = this.state.welcome.desc;
+            _article = <ReadContent title={_title} desc={_desc}></ReadContent>;
         } else if (this.state.mode === "read") {
-            // var i = 0;
-            // while (i < this.state.contents.length) {
-            //     var data = this.state.contents[i];
-            //     if (data.id === this.state.selected_content_id) {
-            //         _title = data.title;
-            //         _desc = data.desc;
-            //         break;
-            //     }
-            //     i++;
-            // }
             var target = this.state.contents.filter(
-                e => e.id == this.state.selected_content_id
+                e => e.id === this.state.selected_content_id
             )[0];
             _title = target.title;
             _desc = target.desc;
+            _article = <ReadContent title={_title} desc={_desc}></ReadContent>;
+        } else if (this.state.mode === "create") {
+            _article = (
+                <CreateContent
+                    onSubmit={(_title, _desc) => {
+                        this.max_content_id++;
+                        var _contents = this.state.contents.concat({
+                            id: this.max_content_id,
+                            title: _title,
+                            desc: _desc
+                        });
+                        this.setState({
+                            contents: _contents
+                        });
+                    }}
+                ></CreateContent>
+            );
         }
         return (
             <div className="App">
@@ -64,8 +76,22 @@ class App extends Component {
                     }}
                     data={this.state.contents}
                 ></TOC>
-                <Content title={_title} desc={_desc}></Content>
-                <Test title={this.state.mode}></Test>
+
+                <Control
+                    onChangeMode={_mode => {
+                        this.setState({
+                            mode: _mode
+                        });
+                    }}
+                ></Control>
+                {_article}
+                <Test
+                    atag={() => {
+                        this.setState({
+                            mode: "welcome"
+                        });
+                    }}
+                ></Test>
             </div>
         );
     }
