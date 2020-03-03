@@ -4,7 +4,7 @@ import Subject from "./components/Subject";
 import TOC from "./components/TOC";
 import ReadContent from "./components/ReadContent";
 import CreateContent from "./components/CreateContent";
-import Test from "./components/Test";
+import UpdateContent from "./components/UpdateContent";
 import Control from "./components/control";
 
 class App extends Component {
@@ -14,8 +14,8 @@ class App extends Component {
         this.state = {
             mode: "welcome",
             selected_content_id: 1,
-            subject: { title: "w", sub: "woww" },
-            welcome: { title: "welcome", desc: "welcome desc" },
+            subject: { title: "title", sub: "sub" },
+            welcome: { title: "wel", desc: "dese" },
             contents: [
                 { id: 1, title: "a1", desc: "aa" },
                 { id: 2, title: "a2", desc: "bb" },
@@ -23,7 +23,13 @@ class App extends Component {
             ]
         };
     }
-    render() {
+    getReadContent() {
+        var target = this.state.contents.filter(
+            e => e.id === this.state.selected_content_id
+        )[0];
+        return target;
+    }
+    getContent() {
         var _title,
             _desc,
             _article = null;
@@ -32,29 +38,65 @@ class App extends Component {
             _desc = this.state.welcome.desc;
             _article = <ReadContent title={_title} desc={_desc}></ReadContent>;
         } else if (this.state.mode === "read") {
-            var target = this.state.contents.filter(
-                e => e.id === this.state.selected_content_id
-            )[0];
-            _title = target.title;
-            _desc = target.desc;
-            _article = <ReadContent title={_title} desc={_desc}></ReadContent>;
+            var _content = this.getReadContent();
+            _article = (
+                <ReadContent
+                    title={_content.title}
+                    desc={_content.desc}
+                ></ReadContent>
+            );
         } else if (this.state.mode === "create") {
             _article = (
                 <CreateContent
                     onSubmit={(_title, _desc) => {
                         this.max_content_id++;
-                        var _contents = this.state.contents.concat({
+                        // var _contents = this.state.contents.concat({
+                        //     id: this.max_content_id,
+                        //     title: _title,
+                        //     desc: _desc
+                        // });
+                        var _contents = Array.from(this.state.contents);
+                        _contents.push({
                             id: this.max_content_id,
                             title: _title,
                             desc: _desc
                         });
                         this.setState({
-                            contents: _contents
+                            contents: _contents,
+                            mode: "read",
+                            selected_content_id: this.max_content_id
                         });
                     }}
                 ></CreateContent>
             );
+        } else if (this.state.mode === "update") {
+            _content = this.getReadContent();
+            _article = (
+                <UpdateContent
+                    data={_content}
+                    onSubmit={(_id, _title, _desc) => {
+                        var _contents = Array.from(this.state.contents);
+                        _contents.find((e, i) => {
+                            if (e.id === _id) {
+                                _contents[i] = {
+                                    id: _id,
+                                    title: _title,
+                                    desc: _desc
+                                };
+                            }
+                        });
+                        this.setState({
+                            contents: _contents,
+                            mode: "read"
+                        });
+                    }}
+                ></UpdateContent>
+            );
         }
+        return _article;
+    }
+
+    render() {
         return (
             <div className="App">
                 <Subject
@@ -79,22 +121,35 @@ class App extends Component {
 
                 <Control
                     onChangeMode={_mode => {
-                        this.setState({
-                            mode: _mode
-                        });
+                        if (_mode === "delete") {
+                            var _contents = Array.from(this.state.contents);
+                            var i = 0;
+                            while (i < _contents.length) {
+                                console.log(this.state.selected_content_id);
+                                if (
+                                    _contents[i].id ==
+                                    this.state.selected_content_id
+                                ) {
+                                    _contents.splice(i, 1);
+                                    break;
+                                }
+                                i = i + 1;
+                            }
+                            console.log(_contents);
+                            this.setState({
+                                mode: "welcome",
+                                contents: _contents
+                            });
+                        } else {
+                            this.setState({
+                                mode: _mode
+                            });
+                        }
                     }}
                 ></Control>
-                {_article}
-                <Test
-                    atag={() => {
-                        this.setState({
-                            mode: "welcome"
-                        });
-                    }}
-                ></Test>
+                {this.getContent()}
             </div>
         );
     }
 }
-
 export default App;

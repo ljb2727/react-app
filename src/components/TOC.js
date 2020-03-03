@@ -28,7 +28,7 @@ class TOC extends Component {
                             this.props.onChangePage(e.target.dataset.id);
                         }}
                     >
-                        {item.desc}
+                        {item.title}
                     </a>
                 </li>
             );
